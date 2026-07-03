@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚗 AutoGarage Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4fc3f7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icons/logo-192.png">
+</head>
+<body>
+<!-- Навигация -->
+<nav class="navbar">
+  <div class="nav-container">
+    <!-- Верхний ряд -->
+    <div class="nav-top">
+      <!-- Логотип -->
+      <div class="nav-brand">
+        <i class="fas fa-car"></i>
+        <span>AutoGarage Pro</span>
+      </div>
+
+      <!-- Кнопка гамбургера -->
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Правая часть (авторизация, счетчик, сортировка) -->
+      <div class="nav-right">
+        <div class="nav-auth">
+                    <span id="auth-status" style="color: #ff9800; font-size: 0.75rem; white-space: nowrap;">
+                        <i class="fas fa-circle" style="font-size: 0.4rem;"></i>
+                        <span class="auth-status-text">Не авторизован</span>
+                    </span>
+          <span id="unsaved-counter" style="display: none; color: #ff9800; font-size: 0.75rem; white-space: nowrap; background: rgba(255,152,0,0.15); padding: 0.15rem 0.5rem; border-radius: 12px; cursor: pointer;" onclick="window.app.forceSave()" title="Нажмите для принудительного сохранения">
+                        <i class="fas fa-save"></i> <span id="unsaved-count">0</span>
+                    </span>
+          <button id="auth-btn" class="btn btn-primary btn-sm" onclick="window.authenticate()" style="display: none;">
+            <i class="fas fa-sign-in-alt"></i> <span class="btn-text">Войти</span>
+          </button>
+          <button id="signout-btn" class="btn btn-secondary btn-sm" onclick="window.signOut()" style="display: none;">
+            <i class="fas fa-sign-out-alt"></i> <span class="btn-text">Выйти</span>
+          </button>
+        </div>
+        <button id="sort-btn" class="btn btn-secondary btn-sm sort-btn" onclick="toggleSortDirection()" title="Изменить направление сортировки">
+          <i class="fas fa-sort"></i>
+          <span id="sort-label">По возрастанию</span>
+        </button>
+        <button id="install-btn" class="btn btn-success btn-sm" onclick="window.installApp()" style="display: none;">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Нижний ряд - меню -->
+    <div class="nav-bottom" id="nav-bottom">
+      <ul class="nav-menu" id="main-nav-menu">
+        <li><a href="#" data-page="garage" class="active"><i class="fas fa-warehouse"></i> <span>Гараж</span></a></li>
+        <li><a href="#" data-page="parts"><i class="fas fa-cogs"></i> <span>Детали</span></a></li>
+        <li><a href="#" data-page="directories"><i class="fas fa-book"></i> <span>Справочники</span></a></li>
+        <li><a href="#" data-page="service"><i class="fas fa-tools"></i> <span>Обслуживание</span></a></li>
+        <li><a href="#" data-page="events"><i class="fas fa-calendar-alt"></i> <span>События</span></a></li>
+        <li><a href="#" data-page="history"><i class="fas fa-history"></i> <span>История</span></a></li>
+        <li><a href="#" data-page="mileage"><i class="fas fa-tachometer-alt"></i> <span>Пробег</span></a></li>
+        <li><a href="#" data-page="help"><i class="fas fa-question-circle"></i> <span>Справка</span></a></li>
+        <li><a href="#" data-page="settings"><i class="fas fa-cog"></i> <span>Настройки</span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Основной контент -->
+<main class="container">
+  <!-- ====== ГАРАЖ ====== -->
+  <section id="page-garage" class="page active">
+    <div class="page-header">
+      <h2><i class="fas fa-warehouse"></i> Мой гараж</h2>
+      <button class="btn btn-primary" onclick="showAddCarModal()">
+        <i class="fas fa-plus"></i> Добавить авто
+      </button>
+    </div>
+    <div id="cars-grid" class="cars-grid"></div>
+  </section>
+
+  <!-- ====== ДЕТАЛИ ====== -->
+  <section id="page-parts" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-cogs"></i> Характеристики деталей</h2>
+      <button class="btn btn-primary" onclick="showAddPartModal()">
+        <i class="fas fa-plus"></i> Добавить деталь
+      </button>
+    </div>
+    <div id="parts-list" class="parts-list"></div>
+  </section>
+
+  <!-- ====== СПРАВОЧНИКИ ====== -->
+  <section id="page-directories" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-book"></i> Справочники</h2>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="service-types">
+        <i class="fas fa-wrench"></i> Виды обслуживания
+      </button>
+      <button class="tab-btn" data-tab="regulations">
+        <i class="fas fa-clock"></i> Регламенты
+      </button>
+      <button class="tab-btn" data-tab="units">
+        <i class="fas fa-ruler"></i> Единицы измерения
+      </button>
+      <button class="tab-btn" data-tab="manufacturers">
+        <i class="fas fa-industry"></i> Производители
+      </button>
+    </div>
+
+    <div id="tab-service-types" class="tab-content active">
+      <div class="tab-header">
+        <h3>Виды обслуживания</h3>
+        <button class="btn btn-primary" onclick="showAddServiceTypeModal()">
+          <i class="fas fa-plus"></i> Добавить вид
+        </button>
+      </div>
+      <div id="service-types-list" class="directory-list"></div>
+    </div>
+
+    <div id="tab-regulations" class="tab-content">
+      <div class="tab-header">
+        <h3>Регламенты обслуживания</h3>
+        <button class="btn btn-primary" onclick="showAddRegulationModal()">
+          <i class="fas fa-plus"></i> Добавить регламент
+        </button>
+      </div>
+      <div id="regulations-list" class="directory-list"></div>
+    </div>
+
+    <div id="tab-units" class="tab-content">
+      <div class="tab-header">
+        <h3>Единицы измерения</h3>
+        <button class="btn btn-primary" onclick="showAddUnitModal()">
+          <i class="fas fa-plus"></i> Добавить единицу
+        </button>
+      </div>
+      <div id="units-list" class="directory-list"></div>
+    </div>
+
+    <div id="tab-manufacturers" class="tab-content">
+      <div class="tab-header">
+        <h3>Производители и запчасти</h3>
+        <button class="btn btn-primary" onclick="showAddManufacturerModal()">
+          <i class="fas fa-plus"></i> Добавить производителя
+        </button>
+      </div>
+      <div id="manufacturers-list" class="directory-list"></div>
+    </div>
+  </section>
+
+  <!-- ====== ОБСЛУЖИВАНИЕ ====== -->
+  <section id="page-service" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-tools"></i> Обслуживание</h2>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+        <div class="filter-group">
+          <label for="service-car-filter" style="font-weight: 600; font-size: 0.9rem; color: var(--gray);">Автомобиль:</label>
+          <select id="service-car-filter" onchange="app.filterServices()">
+            <option value="all">Все автомобили</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="showAddServiceModal()">
+          <i class="fas fa-plus"></i> Добавить запись
+        </button>
+      </div>
+    </div>
+    <div id="service-list" class="service-list"></div>
+  </section>
+
+  <!-- ====== СОБЫТИЯ ====== -->
+  <section id="page-events" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-calendar-alt"></i> События</h2>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+        <div class="filter-group">
+          <label for="event-car-filter" style="font-weight: 600; font-size: 0.9rem; color: var(--gray);">Автомобиль:</label>
+          <select id="event-car-filter" onchange="app.filterEvents()">
+            <option value="all">Все автомобили</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="event-status-filter" style="font-weight: 600; font-size: 0.9rem; color: var(--gray);">Статус:</label>
+          <select id="event-status-filter" onchange="app.filterEvents()">
+            <option value="all">Все события</option>
+            <option value="active" selected>Активные</option>
+            <option value="urgent">🟠 Срочные</option>
+            <option value="overdue">🔴 Просроченные</option>
+            <option value="soon">🟡 Скоро</option>
+            <option value="scheduled">🔵 Запланированные</option>
+            <option value="done">🟢 Выполненные</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateEvents()">
+          <i class="fas fa-sync"></i> Сгенерировать
+        </button>
+        <button class="btn btn-secondary" onclick="app.refreshEventsData()" title="Обновить данные о запчастях в существующих событиях">
+          <i class="fas fa-refresh"></i> Обновить данные
+        </button>
+      </div>
+    </div>
+    <div id="events-list" class="events-list"></div>
+  </section>
+
+  <!-- ====== ИСТОРИЯ ====== -->
+  <section id="page-history" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-history"></i> История обслуживания</h2>
+      <div class="filter-group">
+        <select id="history-filter" onchange="loadHistory()">
+          <option value="all">Все автомобили</option>
+        </select>
+      </div>
+    </div>
+    <div id="history-list" class="history-list"></div>
+  </section>
+
+  <!-- ====== ПРОБЕГ ====== -->
+  <section id="page-mileage" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-tachometer-alt"></i> Учёт пробега</h2>
+      <button class="btn btn-primary" onclick="showAddMileageModal()">
+        <i class="fas fa-plus"></i> Добавить запись
+      </button>
+    </div>
+    <div id="mileage-list" class="mileage-list"></div>
+  </section>
+
+  <!-- ====== СПРАВКА ====== -->
+  <section id="page-help" class="page">
+    <div class="help-content">
+      <h2><i class="fas fa-question-circle"></i> Справка</h2>
+      <p style="color: var(--gray); margin-bottom: 2rem; text-align: center;">
+        Краткое руководство по использованию AutoGarage Pro
+      </p>
+
+      <!-- ====== БЫСТРЫЙ СТАРТ ====== -->
+      <div class="help-section help-section-highlight">
+        <h3>🚀 Быстрый старт</h3>
+        <ol style="padding-left: 1.5rem; color: var(--gray); line-height: 2;">
+          <li><strong>Авторизуйтесь</strong> — нажмите кнопку "Войти" в правом верхнем углу</li>
+          <li><strong>Добавьте автомобиль</strong> — в разделе "Гараж" нажмите "Добавить авто"</li>
+          <li><strong>Настройте справочники</strong> — виды обслуживания, регламенты, единицы измерения</li>
+          <li><strong>Создайте запись обслуживания</strong> — в разделе "Обслуживание"</li>
+          <li><strong>Сгенерируйте события</strong> — в разделе "События" нажмите "Сгенерировать"</li>
+        </ol>
+      </div>
+
+      <!-- ====== РАЗДЕЛЫ ====== -->
+      <div class="help-grid">
+        <!-- ГАРАЖ -->
+        <div class="help-section">
+          <h3>🚗 Гараж</h3>
+          <p>Здесь хранятся все ваши автомобили.</p>
+          <ul style="padding-left: 1.2rem; color: var(--gray); font-size: 0.9rem; line-height: 1.8;">
+            <li><strong>➕ Добавить авто</strong> — заполните марку, модель, пробег и другие данные</li>
+            <li><strong>✏️ Изменить</strong> — обновить информацию об автомобиле</li>
+            <li><strong>🗑️ Удалить</strong> — удалить автомобиль из гаража</li>
+          </ul>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray); background: var(--secondary); padding: 0.3rem 0.8rem; border-radius: 6px; display: inline-block;">
+            💡 Пробег обновляется автоматически при добавлении записей пробега
+          </div>
+        </div>
+
+        <!-- ДЕТАЛИ -->
+        <div class="help-section">
+          <h3>⚙️ Характеристики деталей</h3>
+          <p>Справочник деталей и их характеристик.</p>
+          <ul style="padding-left: 1.2rem; color: var(--gray); font-size: 0.9rem; line-height: 1.8;">
+            <li><strong>➕ Добавить деталь</strong> — укажите название и характеристики</li>
+            <li><strong>✏️ Редактировать</strong> — изменить название или характеристики</li>
+            <li><strong>📋 Характеристики</strong> — добавляйте любые параметры (размер, вес, материал и т.д.)</li>
+          </ul>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray); background: var(--secondary); padding: 0.3rem 0.8rem; border-radius: 6px; display: inline-block;">
+            💡 Характеристики сортируются по алфавиту для удобства
+          </div>
+        </div>
+
+        <!-- СПРАВОЧНИКИ -->
+        <div class="help-section">
+          <h3>📚 Справочники</h3>
+          <p>Настройка всех справочников для работы приложения.</p>
+          <ul style="padding-left: 1.2rem; color: var(--gray); font-size: 0.9rem; line-height: 1.8;">
+            <li><strong>🔧 Виды обслуживания</strong> — что вы делаете с авто (замена масла, ТО и т.д.)</li>
+            <li>
+              <strong>⏰ Регламенты</strong> — как часто нужно делать обслуживание
+              <div style="background: #fff8e1; padding: 0.5rem 0.8rem; border-radius: 6px; margin-top: 0.3rem; font-size: 0.85rem; border-left: 3px solid var(--warning);">
+                <strong>📌 Важно! Как правильно вводить регламенты:</strong>
+                <ul style="padding-left: 1.2rem; margin-top: 0.2rem; font-size: 0.85rem;">
+                  <li>✅ <strong>Правильно:</strong> <code>10000 км</code>, <code>6 месяцев</code>, <code>1 год</code>, <code>30 дней</code></li>
+                  <li>❌ <strong>Неправильно:</strong> <code>10 000</code> (с пробелом), <code>десять тысяч</code> (словами), <code>10000</code> (без единицы измерения)</li>
+                  <li><strong>💡 Формат:</strong> число + пробел + единица измерения (км, мес, год, день)</li>
+                </ul>
+              </div>
+            </li>
+            <li><strong>📏 Единицы измерения</strong> — шт, л, кг и т.д.</li>
+            <li><strong>🏭 Производители</strong> — производители деталей и запчастей</li>
+          </ul>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray); background: var(--secondary); padding: 0.3rem 0.8rem; border-radius: 6px; display: inline-block;">
+            💡 Все справочники можно редактировать "на лету" без перезагрузки
+          </div>
+        </div>
+
+        <!-- ОБСЛУЖИВАНИЕ -->
+        <div class="help-section">
+          <h3>🔧 Обслуживание</h3>
+          <p>Учёт выполненных и планируемых обслуживаний.</p>
+          <ul style="padding-left: 1.2rem; color: var(--gray); font-size: 0.9rem; line-height: 1.8;">
+            <li><strong>➕ Добавить запись</strong> — выберите авто, вид обслуживания и регламент</li>
+            <li><strong>📦 Необходимое количество</strong> — сколько запчастей нужно</li>
+            <li><strong>🏷️ Производители</strong> — выберите нужных производителей из списка</li>
+            <li><strong>⚠️ По износу</strong> — для регламентов "По износу" можно запланировать замену</li>
+          </ul>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray); background: var(--secondary); padding: 0.3rem 0.8rem; border-radius: 6px; display: inline-block;">
+            💡 Если у обслуживания есть событие — в карточке появится индикатор
+          </div>
+        </div>
+
+        <!-- СОБЫТИЯ -->
+        <div class="help-section">
+          <h3>📅 События</h3>
+          <p>Что и когда нужно сделать с автомобилем.</p>
+          <ul style="padding-left: 1.2rem; color: var(--gray); font-size: 0.9rem; line-height: 1.8;">
+            <li><strong>🔄 Сгенерировать</strong> — создать события на основе регламентов</li>
+            <li><strong>📊 Статусы:</strong>
+              <ul style="padding-left: 1.2rem; font-size: 0.85rem;">
+                <li>🔴 <strong>Просрочено</strong> — нужно было сделать вчера</li>
+                <li>🟠 <strong>Срочно!</strong> — осталось ≤7 дней или ≤100 км</li>
+                <li>🟡 <strong>Скоро</strong> — осталось ≤30 дней или ≤1000 км</li>
+                <li>🔵 <strong>Запланировано</strong> — есть время подготовиться</li>
+                <li>🟢 <strong>Выполнено</strong> — всё сделано!</li>
+              </ul>
+            </li>
+            <li><strong>✅ Выполнено</strong> — при выполнении запросит дату и пробег</li>
+          </ul>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray); background: var(--secondary); padding: 0.3rem 0.8rem; border-radius: 6px; display: inline-block;">
+            💡 После выполнения события автоматически создаётся следующее
+          </div>
+        </div>
+
+        <!-- ИСТОРИЯ -->
+        <div class="help-section">
+          <h3>📜 История</h3>
+          <p>Все выполненные обслуживания в одном месте.</p>
+          <ul style="padding-left: 1.2rem; color: var(--gray); font-size: 0.9rem; line-height: 1.8;">
+            <li><strong>📋 Список</strong> — все выполненные работы с датами и пробегом</li>
+            <li><strong>🔍 Фильтр</strong> — можно посмотреть историю по конкретному автомобилю</li>
+            <li><strong>📝 Комментарии</strong> — видны все заметки из записей обслуживания</li>
+          </ul>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray); background: var(--secondary); padding: 0.3rem 0.8rem; border-radius: 6px; display: inline-block;">
+            💡 История заполняется автоматически при выполнении событий
+          </div>
+        </div>
+
+        <!-- ПРОБЕГ -->
+        <div class="help-section">
+          <h3>🛣️ Учёт пробега</h3>
+          <p>Отслеживайте изменения пробега автомобилей.</p>
+          <ul style="padding-left: 1.2rem; color: var(--gray); font-size: 0.9rem; line-height: 1.8;">
+            <li><strong>➕ Добавить запись</strong> — укажите пробег и дату</li>
+            <li><strong>📊 История</strong> — все изменения пробега в хронологическом порядке</li>
+            <li><strong>🔄 Автообновление</strong> — пробег в карточке авто обновляется автоматически</li>
+          </ul>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray); background: var(--secondary); padding: 0.3rem 0.8rem; border-radius: 6px; display: inline-block;">
+            💡 Используется для расчёта событий по пробегу
+          </div>
+        </div>
+
+        <!-- НАСТРОЙКИ -->
+        <div class="help-section">
+          <h3>⚙️ Настройки</h3>
+          <p>Подключение к вашей Google таблице.</p>
+          <ul style="padding-left: 1.2rem; color: var(--gray); font-size: 0.9rem; line-height: 1.8;">
+            <li><strong>📊 ID таблицы</strong> — укажите ID вашей Google таблицы</li>
+            <li><strong>🔗 Проверить подключение</strong> — убедитесь, что таблица доступна</li>
+            <li><strong>💾 Сохранить</strong> — сохраните настройки и перезагрузите страницу</li>
+          </ul>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray); background: var(--secondary); padding: 0.3rem 0.8rem; border-radius: 6px; display: inline-block;">
+            💡 Все данные синхронизируются с Google Sheets в реальном времени
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== СОВЕТЫ ====== -->
+      <div class="help-section help-section-tips">
+        <h3>💡 Полезные советы</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.8rem;">
+          <div style="background: var(--secondary); padding: 0.8rem 1rem; border-radius: 8px;">
+            <strong>🔐 Сохранение</strong>
+            <p style="font-size: 0.85rem; margin-top: 0.2rem;">Данные сохраняются автоматически через 3 секунды. Счетчик 📌 покажет несохранённые изменения.</p>
+          </div>
+          <div style="background: var(--secondary); padding: 0.8rem 1rem; border-radius: 8px;">
+            <strong>📱 Мобильное приложение</strong>
+            <p style="font-size: 0.85rem; margin-top: 0.2rem;">Установите на телефон через браузер — работайте как с нативным приложением.</p>
+          </div>
+          <div style="background: var(--secondary); padding: 0.8rem 1rem; border-radius: 8px;">
+            <strong>🔄 Сортировка</strong>
+            <p style="font-size: 0.85rem; margin-top: 0.2rem;">Используйте кнопку ↑↓ в шапке для сортировки списков по возрастанию или убыванию.</p>
+          </div>
+          <div style="background: var(--secondary); padding: 0.8rem 1rem; border-radius: 8px;">
+            <strong>🔍 Поиск</strong>
+            <p style="font-size: 0.85rem; margin-top: 0.2rem;">В форме обслуживания есть поиск производителей — быстро находите нужного.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== ВОПРОСЫ-ОТВЕТЫ ====== -->
+      <div class="help-section help-section-faq">
+        <h3>❓ Частые вопросы</h3>
+        <div style="display: grid; gap: 0.8rem;">
+          <div>
+            <details>
+              <summary style="font-weight: 600; cursor: pointer; color: var(--dark);">Как добавить регламент "По износу"?</summary>
+              <p style="color: var(--gray); font-size: 0.9rem; margin-top: 0.5rem; padding-left: 1rem;">
+                В справочнике "Регламенты" создайте регламент с названием, содержащим "По износу". Затем в карточке обслуживания появится кнопка "Планировать замену".
+              </p>
+            </details>
+          </div>
+          <div>
+            <details>
+              <summary style="font-weight: 600; cursor: pointer; color: var(--dark);">Почему не генерируются события?</summary>
+              <p style="color: var(--gray); font-size: 0.9rem; margin-top: 0.5rem; padding-left: 1rem;">
+                Убедитесь, что: 1) есть записи обслуживания с привязанными регламентами, 2) в регламентах указан период (например, "10000 км"), 3) есть данные о пробеге или дате последнего обслуживания.
+              </p>
+            </details>
+          </div>
+          <div>
+            <details>
+              <summary style="font-weight: 600; cursor: pointer; color: var(--dark);">Как обновить данные после изменения в Google Sheets?</summary>
+              <p style="color: var(--gray); font-size: 0.9rem; margin-top: 0.5rem; padding-left: 1rem;">
+                Перезагрузите страницу (F5). Данные автоматически загрузятся из таблицы при авторизации.
+              </p>
+            </details>
+          </div>
+          <div>
+            <details>
+              <summary style="font-weight: 600; cursor: pointer; color: var(--dark);">Что делать, если не сохраняются данные?</summary>
+              <p style="color: var(--gray); font-size: 0.9rem; margin-top: 0.5rem; padding-left: 1rem;">
+                Проверьте авторизацию (кнопка "Войти"). Если сессия истекла — авторизуйтесь заново. Также проверьте подключение к интернету.
+              </p>
+            </details>
+          </div>
+          <div>
+            <details>
+              <summary style="font-weight: 600; cursor: pointer; color: var(--dark);">Как удалить запланированное событие по износу?</summary>
+              <p style="color: var(--gray); font-size: 0.9rem; margin-top: 0.5rem; padding-left: 1rem;">
+                В разделе "События" найдите карточку с пометкой "⚠️ По износу" и нажмите красную кнопку 🗑️.
+              </p>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== НАСТРОЙКИ ====== -->
+  <section id="page-settings" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-cog"></i> Настройки</h2>
+    </div>
+    <div class="settings-content">
+      <div class="settings-card">
+        <h3>📊 Подключение к Google Sheets</h3>
+        <p style="color: var(--gray); margin-bottom: 1rem;">
+          Укажите ID вашей Google таблицы. Его можно найти в URL таблицы:<br>
+          <code style="background: var(--secondary); padding: 0.2rem 0.5rem; border-radius: 4px;">
+            https://docs.google.com/spreadsheets/d/<strong>ВАШ_SHEET_ID</strong>/edit
+          </code>
+        </p>
+        <form id="settingsForm">
+          <div class="form-group">
+            <label>ID таблицы (Sheet ID) *</label>
+            <input type="text" id="settingsSheetId" placeholder="Введите ID Google таблицы" required>
+            <small style="color: #999; font-size: 0.8rem;">
+              Текущий ID: <span id="currentSheetId" style="font-weight: 600; color: var(--primary);"></span>
+            </small>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Сохранить
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="resetSettings()">
+              <i class="fas fa-undo"></i> Сбросить
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="testConnection()">
+              <i class="fas fa-plug"></i> Проверить подключение
+            </button>
+          </div>
+        </form>
+        <div id="connectionStatus" style="margin-top: 1rem; display: none;">
+          <!-- Здесь будет статус подключения -->
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Модальные окна (сокращено для экономии места) -->
+<div id="carModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('carModal')">&times;</span>
+    <h3 id="carModalTitle">Добавить автомобиль</h3>
+    <form id="carForm">
+      <input type="hidden" id="carId">
+      <div class="form-group">
+        <label>Марка *</label>
+        <input type="text" id="carBrand" required>
+      </div>
+      <div class="form-group">
+        <label>Модель *</label>
+        <input type="text" id="carModel" required>
+      </div>
+      <div class="form-group">
+        <label>Год</label>
+        <input type="number" id="carYear" min="1900" max="2099">
+      </div>
+      <div class="form-group">
+        <label>Цвет</label>
+        <input type="text" id="carColor">
+      </div>
+      <div class="form-group">
+        <label>Госномер</label>
+        <input type="text" id="carPlate">
+      </div>
+      <div class="form-group">
+        <label>VIN</label>
+        <input type="text" id="carVin" maxlength="17">
+      </div>
+      <div class="form-group">
+        <label>Пробег (км) *</label>
+        <input type="number" id="carMileage" required min="0">
+      </div>
+      <div class="form-group">
+        <label>Примечания</label>
+        <textarea id="carNotes" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Фото (URL)</label>
+        <input type="url" id="carPhoto" placeholder="https://example.com/photo.jpg">
+      </div>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+  </div>
+</div>
+
+<!-- Остальные модальные окна (аналогично предыдущим) -->
+<div id="partModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('partModal')">&times;</span>
+    <h3 id="partModalTitle">Добавить деталь</h3>
+    <form id="partForm">
+      <input type="hidden" id="partId">
+      <div class="form-group">
+        <label>Название детали *</label>
+        <input type="text" id="partName" required>
+      </div>
+      <div class="form-group">
+        <label>Характеристики</label>
+        <div id="characteristics-container">
+          <div class="char-row">
+            <input type="text" placeholder="Название характеристики" class="char-name">
+            <input type="text" placeholder="Значение" class="char-value">
+            <button type="button" onclick="removeCharacteristic(this)">✕</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="addCharacteristic()">
+          <i class="fas fa-plus"></i> Добавить характеристику
+        </button>
+      </div>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+  </div>
+</div>
+
+<div id="serviceTypeModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('serviceTypeModal')">&times;</span>
+    <h3 id="serviceTypeModalTitle">Добавить вид обслуживания</h3>
+    <form id="serviceTypeForm">
+      <input type="hidden" id="serviceTypeId">
+      <div class="form-group">
+        <label>Название *</label>
+        <input type="text" id="serviceTypeName" required>
+      </div>
+      <div class="form-group">
+        <label>Количество в наличии</label>
+        <input type="number" id="serviceTypeQuantity" min="0" value="0" step="any">
+      </div>
+      <div class="form-group">
+        <label>Единица измерения</label>
+        <select id="serviceTypeUnit">
+          <option value="">Не указано</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Описание</label>
+        <textarea id="serviceTypeDescription" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+  </div>
+</div>
+
+<div id="regulationModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('regulationModal')">&times;</span>
+    <h3 id="regulationModalTitle">Добавить регламент</h3>
+    <form id="regulationForm">
+      <input type="hidden" id="regulationId">
+      <div class="form-group">
+        <label>Название регламента *</label>
+        <input type="text" id="regulationName" placeholder="Например: 10000 км, 6 месяцев, 1 год..." required>
+        <small style="color: #999; font-size: 0.8rem; display: block; margin-top: 0.3rem;">
+          📌 Формат: <strong>число + пробел + единица</strong> (например: 10000 км, 6 месяцев, 1 год)
+        </small>
+      </div>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+  </div>
+</div>
+
+<div id="unitModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('unitModal')">&times;</span>
+    <h3 id="unitModalTitle">Добавить единицу измерения</h3>
+    <form id="unitForm">
+      <input type="hidden" id="unitId">
+      <div class="form-group">
+        <label>Название *</label>
+        <input type="text" id="unitName" required>
+      </div>
+      <div class="form-group">
+        <label>Краткое название</label>
+        <input type="text" id="unitShortName" placeholder="шт, л, кг...">
+      </div>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+  </div>
+</div>
+
+<div id="manufacturerModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('manufacturerModal')">&times;</span>
+    <h3 id="manufacturerModalTitle">Добавить производителя</h3>
+    <form id="manufacturerForm">
+      <input type="hidden" id="manufacturerId">
+      <div class="form-group">
+        <label>Производитель *</label>
+        <input type="text" id="manufacturerName" required>
+      </div>
+      <div class="form-group">
+        <label>Название детали</label>
+        <input type="text" id="manufacturerPartName">
+      </div>
+      <div class="form-group">
+        <label>Код детали</label>
+        <input type="text" id="manufacturerPartCode">
+      </div>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+  </div>
+</div>
+
+<div id="serviceModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('serviceModal')">&times;</span>
+    <h3 id="serviceModalTitle">Добавить обслуживание</h3>
+    <form id="serviceForm">
+      <input type="hidden" id="serviceEditId">
+      <div class="form-group">
+        <label>Автомобиль *</label>
+        <select id="serviceCar" required></select>
+      </div>
+      <div class="form-group">
+        <label>Вид обслуживания *</label>
+        <select id="serviceType" required></select>
+      </div>
+      <div class="form-group">
+        <label>Регламент</label>
+        <select id="serviceRegulation">
+          <option value="">Без регламента</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Необходимое количество</label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="number" id="serviceQuantity" min="0" step="any" value="0" style="flex: 1;">
+          <select id="serviceUnit" style="flex: 1;">
+            <option value="">Не указано</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Комментарий</label>
+        <textarea id="serviceComment" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Выбрать производителей</label>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <div style="display: flex; gap: 0.5rem; flex: 1; min-width: 200px;">
+            <input type="text" id="manufacturerSearch" placeholder="🔍 Поиск производителя..." style="flex: 1;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="app.openAddManufacturerFromService()" title="Быстрое добавление производителя">
+              <i class="fas fa-plus-circle" style="color: var(--success);"></i>
+            </button>
+          </div>
+          <div style="display: flex; gap: 0.3rem;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="app.selectAllManufacturers()">
+              <i class="fas fa-check-double"></i> Все
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="app.clearAllManufacturers()">
+              <i class="fas fa-times"></i> Сброс
+            </button>
+          </div>
+        </div>
+        <div id="manufacturer-bubbles" class="bubbles-container"></div>
+        <div id="selected-manufacturers-list" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray);">
+          Выбрано: <span id="selected-count">0</span> производителей
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+  </div>
+</div>
+
+<div id="mileageModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('mileageModal')">&times;</span>
+    <h3>Добавить запись пробега</h3>
+    <form id="mileageForm">
+      <div class="form-group">
+        <label>Автомобиль *</label>
+        <select id="mileageCar" required></select>
+      </div>
+      <div class="form-group">
+        <label>Пробег (км) *</label>
+        <input type="number" id="mileageValue" required min="0">
+      </div>
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="date" id="mileageDate">
+      </div>
+      <div class="form-group">
+        <label>Примечание</label>
+        <textarea id="mileageNote" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+  </div>
+</div>
+
+<!-- Индикатор загрузки -->
+<div id="loading-overlay" class="loading-overlay" style="display: none;">
+  <div class="spinner"></div>
+  <p>Загрузка...</p>
+</div>
+
+<!-- ====== МОДАЛЬНОЕ ОКНО ДЛЯ ВВОДА ДАННЫХ ПРИ ГЕНЕРАЦИИ ====== -->
+<div id="eventBaseModal" class="modal">
+  <div class="modal-content" style="max-width: 550px;">
+    <span class="close" onclick="closeModal('eventBaseModal')">&times;</span>
+    <h3 id="eventBaseModalTitle">📋 Ввод данных обслуживания</h3>
+    <div id="eventBaseModalInfo" style="background: var(--secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.95rem;">
+      <!-- Здесь будет информация об обслуживании -->
+    </div>
+    <form id="eventBaseForm">
+      <div class="form-group">
+        <label>Тип ввода:</label>
+        <div style="display: flex; gap: 1rem; margin-top: 0.3rem; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="radio" name="baseType" value="previous" checked>
+            Предыдущее обслуживание
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="radio" name="baseType" value="next">
+            Предстоящее событие
+          </label>
+        </div>
+        <small style="color: #999; font-size: 0.8rem;">"Предыдущее" - от этих данных будет вестись расчет. "Предстоящее" - создать событие с указанными параметрами.</small>
+      </div>
+      <div class="form-group">
+        <label>Дата <span style="color: #999; font-size: 0.8rem;">(ГГГГ-ММ-ДД)</span></label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="date" id="eventBaseDate" style="flex: 1;">
+          <input type="text" id="eventBaseDateText" placeholder="или вручную: 2026-01-15" style="flex: 1;">
+        </div>
+        <small style="color: #999; font-size: 0.8rem;">Выберите дату из календаря или введите вручную в формате ГГГГ-ММ-ДД</small>
+      </div>
+      <div class="form-group">
+        <label>Пробег <span style="color: #999; font-size: 0.8rem;">(км)</span></label>
+        <input type="number" id="eventBaseMileage" placeholder="Например: 50000" min="0">
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('eventBaseModal')">Отмена</button>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ====== МОДАЛЬНОЕ ОКНО ДЛЯ ВЫПОЛНЕНИЯ СОБЫТИЯ ====== -->
+<div id="eventCompleteModal" class="modal">
+  <div class="modal-content" style="max-width: 550px;">
+    <span class="close" onclick="closeModal('eventCompleteModal')">&times;</span>
+    <h3>✅ Выполнение события</h3>
+    <div id="eventCompleteInfo" style="background: var(--secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.95rem;">
+      <!-- Здесь будет информация о событии -->
+    </div>
+    <form id="eventCompleteForm">
+      <div class="form-group">
+        <label>Дата выполнения <span style="color: #999; font-size: 0.8rem;">(ГГГГ-ММ-ДД)</span></label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="date" id="eventCompleteDate" style="flex: 1;">
+          <input type="text" id="eventCompleteDateText" placeholder="или вручную: 2026-06-15" style="flex: 1;">
+        </div>
+        <small style="color: #999; font-size: 0.8rem;">Выберите дату из календаря или введите вручную в формате ГГГГ-ММ-ДД</small>
+      </div>
+      <div class="form-group">
+        <label>Пробег при выполнении <span style="color: #999; font-size: 0.8rem;">(км)</span></label>
+        <input type="number" id="eventCompleteMileage" placeholder="Например: 55000" min="0">
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('eventCompleteModal')">Отмена</button>
+        <button type="submit" class="btn btn-success">Подтвердить выполнение</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ====== МОДАЛЬНОЕ ОКНО ДЛЯ ПЕРВОЙ ЗАПИСИ ОБСЛУЖИВАНИЯ ====== -->
+<div id="serviceFirstEntryModal" class="modal">
+  <div class="modal-content" style="max-width: 550px;">
+    <span class="close" onclick="closeModal('serviceFirstEntryModal')">&times;</span>
+    <h3>📝 Первая запись обслуживания</h3>
+    <div id="serviceFirstEntryInfo" style="background: var(--secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.95rem;">
+      <!-- Здесь будет информация об обслуживании -->
+    </div>
+    <form id="serviceFirstEntryForm">
+      <div class="form-group">
+        <label>Дата выполнения <span style="color: #999; font-size: 0.8rem;">(ГГГГ-ММ-ДД)</span></label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="date" id="serviceFirstEntryDate" style="flex: 1;">
+          <input type="text" id="serviceFirstEntryDateText" placeholder="или вручную: 2026-01-15" style="flex: 1;">
+        </div>
+        <small style="color: #999; font-size: 0.8rem;">Выберите дату из календаря или введите вручную в формате ГГГГ-ММ-ДД</small>
+      </div>
+      <div class="form-group">
+        <label>Пробег при выполнении <span style="color: #999; font-size: 0.8rem;">(км)</span></label>
+        <input type="number" id="serviceFirstEntryMileage" placeholder="Например: 50000" min="0">
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('serviceFirstEntryModal')">Отмена</button>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ====== МОДАЛЬНОЕ ОКНО ДЛЯ ПЛАНИРОВАНИЯ ЗАМЕНЫ ПО ИЗНОСУ ====== -->
+<div id="wearEventModal" class="modal">
+  <div class="modal-content" style="max-width: 550px;">
+    <span class="close" onclick="closeModal('wearEventModal')">&times;</span>
+    <h3>🔧 Планирование замены по износу</h3>
+    <div id="wearEventInfo" style="background: var(--secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.95rem;">
+      <!-- Здесь будет информация об обслуживании -->
+    </div>
+    <form id="wearEventForm">
+      <div class="form-group">
+        <label>Тип планирования:</label>
+        <div style="display: flex; gap: 1rem; margin-top: 0.3rem; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="radio" name="wearType" value="date" checked>
+            По дате
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="radio" name="wearType" value="mileage">
+            По пробегу
+          </label>
+        </div>
+      </div>
+      <div class="form-group" id="wearDateGroup">
+        <label>Дата планируемой замены <span style="color: #999; font-size: 0.8rem;">(ГГГГ-ММ-ДД)</span></label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="date" id="wearEventDate" style="flex: 1;">
+          <input type="text" id="wearEventDateText" placeholder="или вручную: 2026-01-15" style="flex: 1;">
+        </div>
+        <small style="color: #999; font-size: 0.8rem;">Выберите дату из календаря или введите вручную</small>
+      </div>
+      <div class="form-group" id="wearMileageGroup" style="display: none;">
+        <label>Пробег планируемой замены <span style="color: #999; font-size: 0.8rem;">(км)</span></label>
+        <input type="number" id="wearEventMileage" placeholder="Например: 60000" min="0">
+      </div>
+      <div class="form-group">
+        <label>Комментарий</label>
+        <textarea id="wearEventComment" rows="2" placeholder="Причина замены, примечания..."></textarea>
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('wearEventModal')">Отмена</button>
+        <button type="submit" class="btn btn-primary">Создать событие</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Google OAuth 2.0 -->
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+
+<script>
+  // Объявляем функции ДО загрузки app.js
+  window.gapiLoaded = function() {
+    console.log('🔐 GAPI загружен');
+    gapi.load('client', function() {
+      gapi.client.init({
+        apiKey: CONFIG.API_KEY,
+        discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+      }).then(function() {
+        console.log('✅ GAPI инициализирован');
+        window.gapiInited = true;
+        maybeEnableButtons();
+      });
+    });
+  };
+
+  window.gisLoaded = function() {
+    console.log('🔐 GIS загружен');
+    window.tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: '730514114188-32es3h5vc689m3niqtk61e9irjjkl70p.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/spreadsheets',
+      callback: '',
+    });
+    console.log('✅ GIS инициализирован');
+    window.gisInited = true;
+    maybeEnableButtons();
+  };
+
+  window.maybeEnableButtons = function() {
+    if (window.gapiInited && window.gisInited) {
+      const btn = document.getElementById('auth-btn');
+      if (btn) {
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войти';
+        console.log('✅ Кнопка активирована');
+      }
+    }
+  };
+
+  // Загружаем API
+  function loadGoogleAPI() {
+    var script1 = document.createElement('script');
+    script1.src = 'https://apis.google.com/js/api.js';
+    script1.onload = window.gapiLoaded;
+    document.head.appendChild(script1);
+
+    var script2 = document.createElement('script');
+    script2.src = 'https://accounts.google.com/gsi/client';
+    script2.onload = window.gisLoaded;
+    document.head.appendChild(script2);
+  }
+
+  // Запускаем загрузку
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadGoogleAPI);
+  } else {
+    loadGoogleAPI();
+  }
+</script>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+
+<script>
+  // Настройки
+  document.addEventListener('DOMContentLoaded', function() {
+    // Показываем текущий ID
+    const currentIdSpan = document.getElementById('currentSheetId');
+    if (currentIdSpan) {
+      currentIdSpan.textContent = CONFIG.SHEET_ID || 'не задан';
+    }
+
+    // Заполняем поле формы
+    const sheetIdInput = document.getElementById('settingsSheetId');
+    if (sheetIdInput) {
+      sheetIdInput.value = CONFIG.SHEET_ID || '';
+    }
+  });
+
+  // Сохранение настроек
+  document.getElementById('settingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const sheetId = document.getElementById('settingsSheetId').value.trim();
+    if (!sheetId) {
+      showToast('❌ Введите ID таблицы', 'error');
+      return;
+    }
+
+    // Сохраняем в localStorage
+    if (saveConfig(sheetId)) {
+      document.getElementById('currentSheetId').textContent = sheetId;
+      showToast('✅ Настройки сохранены! Для применения изменений перезагрузите страницу.', 'success');
+
+      // Показываем кнопку перезагрузки
+      const reloadBtn = document.createElement('button');
+      reloadBtn.className = 'btn btn-primary';
+      reloadBtn.innerHTML = '<i class="fas fa-sync"></i> Перезагрузить сейчас';
+      reloadBtn.onclick = function() {
+        location.reload();
+      };
+
+      const statusDiv = document.getElementById('connectionStatus');
+      statusDiv.style.display = 'block';
+      statusDiv.innerHTML = `
+                <div class="toast success" style="border-left: 4px solid var(--success); padding: 1rem; background: #f0fdf4; border-radius: 8px;">
+                    <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                    <span>Настройки сохранены. Нажмите "Перезагрузить" для применения.</span>
+                    ${reloadBtn.outerHTML}
+                </div>
+            `;
+    } else {
+      showToast('❌ Ошибка сохранения настроек', 'error');
+    }
+  });
+
+  // Сброс настроек
+  function resetSettings() {
+    if (!confirm('Сбросить ID таблицы на значение по умолчанию?')) return;
+
+    const defaultId = '1Xfi9m0y8fL44ie60LVW-vLVusHH7wGg5xP9VsdylR7Q';
+    if (saveConfig(defaultId)) {
+      document.getElementById('settingsSheetId').value = defaultId;
+      document.getElementById('currentSheetId').textContent = defaultId;
+      showToast('✅ Настройки сброшены! Перезагрузите страницу для применения.', 'success');
+
+      const statusDiv = document.getElementById('connectionStatus');
+      statusDiv.style.display = 'block';
+      statusDiv.innerHTML = `
+                <div class="toast success" style="border-left: 4px solid var(--success); padding: 1rem; background: #f0fdf4; border-radius: 8px;">
+                    <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                    <span>Настройки сброшены. Перезагрузите страницу.</span>
+                    <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 0.5rem;">
+                        <i class="fas fa-sync"></i> Перезагрузить
+                    </button>
+                </div>
+            `;
+    }
+  }
+
+  // Проверка подключения
+  async function testConnection() {
+    const sheetId = document.getElementById('settingsSheetId').value.trim() || CONFIG.SHEET_ID;
+
+    if (!sheetId) {
+      showToast('❌ Введите ID таблицы', 'error');
+      return;
+    }
+
+    const statusDiv = document.getElementById('connectionStatus');
+    statusDiv.style.display = 'block';
+    statusDiv.innerHTML = `
+            <div class="toast info" style="border-left: 4px solid var(--primary); padding: 1rem; background: #f0f7ff; border-radius: 8px;">
+                <i class="fas fa-spinner fa-spin" style="color: var(--primary);"></i>
+                <span>Проверка подключения к таблице...</span>
+            </div>
+        `;
+
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${CONFIG.API_KEY}`;
+      const response = await fetch(url);
+
+      if (response.ok) {
+        const data = await response.json();
+        statusDiv.innerHTML = `
+                    <div class="toast success" style="border-left: 4px solid var(--success); padding: 1rem; background: #f0fdf4; border-radius: 8px;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <div>
+                            <strong>✅ Подключение успешно!</strong>
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-top: 0.3rem;">
+                                Таблица: <strong>${data.properties.title}</strong>
+                                <br>ID: ${sheetId}
+                            </div>
+                        </div>
+                    </div>
+                `;
+        showToast('✅ Подключение к таблице успешно!', 'success');
+      } else if (response.status === 403) {
+        statusDiv.innerHTML = `
+                    <div class="toast error" style="border-left: 4px solid var(--danger); padding: 1rem; background: #fef2f2; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle" style="color: var(--danger);"></i>
+                        <div>
+                            <strong>❌ Нет доступа к таблице</strong>
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-top: 0.3rem;">
+                                Проверьте, что таблица доступна для чтения (API Key) или авторизуйтесь.
+                            </div>
+                        </div>
+                    </div>
+                `;
+        showToast('❌ Нет доступа к таблице', 'error');
+      } else {
+        statusDiv.innerHTML = `
+                    <div class="toast error" style="border-left: 4px solid var(--danger); padding: 1rem; background: #fef2f2; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle" style="color: var(--danger);"></i>
+                        <div>
+                            <strong>❌ Ошибка подключения</strong>
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-top: 0.3rem;">
+                                Статус: ${response.status}
+                            </div>
+                        </div>
+                    </div>
+                `;
+        showToast(`❌ Ошибка: ${response.status}`, 'error');
+      }
+    } catch (error) {
+      statusDiv.innerHTML = `
+                <div class="toast error" style="border-left: 4px solid var(--danger); padding: 1rem; background: #fef2f2; border-radius: 8px;">
+                    <i class="fas fa-exclamation-circle" style="color: var(--danger);"></i>
+                    <div>
+                        <strong>❌ Ошибка подключения</strong>
+                        <div style="font-size: 0.9rem; color: var(--gray); margin-top: 0.3rem;">
+                            ${error.message}
+                        </div>
+                    </div>
+                </div>
+            `;
+      showToast('❌ Ошибка подключения', 'error');
+    }
+  }
+
+  // Делаем функции глобальными
+  window.resetSettings = resetSettings;
+  window.testConnection = testConnection;
+</script>
+
+<!-- Регистрация Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('✅ Service Worker зарегистрирован', reg))
+      .catch(err => console.error('❌ Ошибка регистрации SW:', err));
+  }
+
+  // Обновление приложения
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Показываем кнопку "Установить"
+    const installBtn = document.getElementById('install-btn');
+    if (installBtn) installBtn.style.display = 'block';
+  });
+
+  async function installApp() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      console.log('Результат установки:', result.outcome);
+      deferredPrompt = null;
+      document.getElementById('install-btn').style.display = 'none';
+    }
+  }
+</script>
+</body>
+</html>

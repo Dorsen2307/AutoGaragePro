@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Нет соединения</title>
+  <style>
+      body {
+          font-family: 'Inter', sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          margin: 0;
+          background: #1a1a2e;
+          color: white;
+          text-align: center;
+          padding: 20px;
+      }
+      .icon {
+          font-size: 4rem;
+          color: #4fc3f7;
+          margin-bottom: 1rem;
+      }
+      h1 { font-size: 1.5rem; margin: 0; }
+      p { color: #999; }
+      .btn {
+          margin-top: 2rem;
+          padding: 0.8rem 2rem;
+          background: #4fc3f7;
+          color: #1a1a2e;
+          border: none;
+          border-radius: 8px;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+      }
+  </style>
+</head>
+<body>
+<div class="icon">📡</div>
+<h1>Нет интернет-соединения</h1>
+<p>Для работы с Google Sheets необходимо подключение к интернету.<br>Приложение уже загружено, данные будут синхронизированы при восстановлении связи.</p>
+<button class="btn" onclick="location.reload()">🔄 Попробовать снова</button>
+</body>
+</html>
